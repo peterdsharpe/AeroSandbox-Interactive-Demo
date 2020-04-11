@@ -16,7 +16,7 @@ app.layout = dbc.Container(
     [
         dbc.Row([
             dbc.Col([
-                html.H1("Solar Aircraft Design with AeroSandbox and Dash"),
+                html.H2("Solar Aircraft Design with AeroSandbox and Dash"),
                 html.H5("Peter Sharpe"),
             ], width=True),
             dbc.Col([
@@ -28,6 +28,19 @@ app.layout = dbc.Container(
             dbc.Col([
                 html.Div([
                     html.H5("Key Parameters"),
+                    html.P("Number of booms:"),
+                    dcc.Slider(
+                        id='n_booms',
+                        min=1,
+                        max=3,
+                        step=1,
+                        value=3,
+                        marks={
+                            1: "1",
+                            2: "2",
+                            3: "3",
+                        }
+                    ),
                     html.P("Wing Span [m]:"),
                     dcc.Input(id='wing_span', value=43, type="number"),
                     html.P("Angle of Attack [deg]:"),
@@ -36,14 +49,9 @@ app.layout = dbc.Container(
                 html.Hr(),
                 html.Div([
                     html.H5("Commands"),
-                    # html.Div([
-                    #     html.Button("Display Geometry")
-                    # ], style={"padding": 10}),
-                    # html.Div([
-                    #     html.Button("Run Analysis"),
-                    # ], style={"padding": 10}),
-                    dbc.Button("Display Geometry", id="display_geometry", color="primary", style={"margin": "5px"}),
-                    dbc.Button("Run Analysis", id="run_analysis", color="secondary", style={"margin": "5px"}),
+                    dbc.Button("Display (1s)", id="display_geometry", color="primary", style={"margin": "5px"}, n_clicks_timestamp='0'),
+                    dbc.Button("Run LL Analysis (3s)", id="run_ll_analysis", color="secondary", style={"margin": "5px"}, n_clicks_timestamp='0'),
+                    dbc.Button("Run VLM Analysis (20s)", id="run_vlm_analysis", color="secondary", style={"margin": "5px"}, n_clicks_timestamp='0'),
                 ]),
                 html.Hr(),
                 html.Div([
@@ -73,8 +81,6 @@ app.layout = dbc.Container(
     ],
     fluid=True
 )
-display_geometry_n_clicks_last = [0]
-run_analysis_n_clicks_last = [0]
 
 
 @app.callback(
@@ -82,8 +88,9 @@ run_analysis_n_clicks_last = [0]
      Output('output', 'children')
      ],
     [
-        Input('display_geometry', 'n_clicks'),
-        Input('run_analysis', 'n_clicks'),
+        Input('display_geometry', 'n_clicks_timestamp'),
+        Input('run_ll_analysis', 'n_clicks_timestamp'),
+        Input('run_vlm_analysis', 'n_clicks_timestamp'),
     ],
     [
         State('wing_span', 'value'),
@@ -91,11 +98,24 @@ run_analysis_n_clicks_last = [0]
     ]
 )
 def display_geometry(
-        display_geometry_n_clicks,
-        run_analysis_n_clicks,
+        display_geometry,
+        run_ll_analysis,
+        run_vlm_analysis,
         wing_span,
         alpha,
 ):
+    ### Figure out which button was clicked
+    try:
+        button_pressed = np.argmax(np.array([
+            float(display_geometry),
+            float(run_ll_analysis),
+            float(run_vlm_analysis),
+        ]))
+        assert button_pressed is not None
+    except:
+        button_pressed = 0
+
+    ### Make the airplane
     airplane = make_airplane(
         wing_span=wing_span
     )
@@ -104,20 +124,22 @@ def display_geometry(
         velocity=20,
         alpha=alpha,
     )
-    if not display_geometry_n_clicks == display_geometry_n_clicks_last[0]:
-        display_geometry_n_clicks_last[0] = display_geometry_n_clicks
+    if button_pressed == 0:
         # Display the geometry
         figure = airplane.draw(show=False)
         output = "Please run an analysis to display the data."
-    elif not run_analysis_n_clicks == run_analysis_n_clicks_last[0]:
-        run_analysis_n_clicks_last[0] = run_analysis_n_clicks
+    elif button_pressed == 1:
         # Run an analysis
         opti = cas.Opti()  # Initialize an analysis/optimization environment
         # airplane.fuselages=[]
         ap = asb.Casll1(
             airplane=airplane,
             op_point=op_point,
-            opti=opti
+            opti=opti,
+            run_setup=False
+        )
+        ap.setup(
+            verbose=False
         )
         # Solver options
         p_opts = {}
@@ -130,19 +152,53 @@ def display_geometry(
         except RuntimeError:
             sol = opti.debug
             raise Exception("An error occurred!")
-        # Postprocess
-        ap.substitute_solution(sol)
 
         figure = ap.draw(show=False)  # Generates
         output = []
         o = lambda x: output.extend([x, html.Br()])
         tab = "..." * 4
-        o("CL: %.4f" % ap.CL)
-        o("CD: %.4f" % ap.CD)
-        o(tab + "CDi: %.4f" % ap.CDi)
-        o(tab + "CDp: %.4f" % ap.CDp)
-        o("L/D: %.3f" % (ap.CL / ap.CD))
+        o("CL: %.4f" % sol.value(ap.CL))
+        o("CD: %.4f" % sol.value(ap.CD))
+        o(tab + "CDi: %.4f" % sol.value(ap.CDi))
+        o(tab + "CDp: %.4f" % sol.value(ap.CDp))
+        o("L/D: %.3f" % sol.value((ap.CL / ap.CD)))
         output = html.P(output)
+    elif button_pressed == 2:
+        # Run an analysis
+        opti = cas.Opti()  # Initialize an analysis/optimization environment
+        # airplane.fuselages=[]
+        ap = asb.Casvlm1(
+            airplane=airplane,
+            op_point=op_point,
+            opti=opti,
+            run_setup=False
+        )
+        ap.setup(
+            verbose=False
+        )
+        # Solver options
+        p_opts = {}
+        s_opts = {}
+        # s_opts["mu_strategy"] = "adaptive"
+        opti.solver('ipopt', p_opts, s_opts)
+        # Solve
+        try:
+            sol = opti.solve()
+        except RuntimeError:
+            sol = opti.debug
+            raise Exception("An error occurred!")
+
+        figure = ap.draw(show=False)  # Generates
+        output = []
+        o = lambda x: output.extend([x, html.Br()])
+        tab = "..." * 4
+        o("CL: %.4f" % sol.value(ap.CL))
+        o("CDi: %.4f" % sol.value(ap.CDi))
+        # o(tab + "CDi: %.4f" % ap.CDi)
+        # o(tab + "CDp: %.4f" % ap.CDp)
+        o("L/Di: %.3f" % sol.value((ap.CL / ap.CDi)))
+        output = html.P(output)
+
     figure.update_layout(
         autosize=True,
         # width=1000,
@@ -154,7 +210,7 @@ def display_geometry(
             t=0,
         )
     )
-    camera = dict
+
     return (figure, output)
 
 

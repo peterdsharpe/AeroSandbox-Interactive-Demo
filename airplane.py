@@ -1,8 +1,10 @@
 import aerosandbox as asb
-from aerosandbox.library.airfoils import generic_airfoil, e216
+from aerosandbox.library.airfoils import e216
 import numpy as np
 import casadi as cas
 import copy
+
+naca0008 = asb.Airfoil("naca0008")
 
 def make_airplane(wing_span):
     n_booms = 3
@@ -70,7 +72,7 @@ def make_airplane(wing_span):
                 z_le=0,  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 chord=hstab_chord,
                 twist=-3,  # degrees # TODO fix
-                airfoil=generic_airfoil,  # Airfoils are blended between a given XSec and the next one.
+                airfoil=naca0008,  # Airfoils are blended between a given XSec and the next one.
                 control_surface_type='symmetric',
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
@@ -82,7 +84,7 @@ def make_airplane(wing_span):
                 z_le=0,
                 chord=hstab_chord,
                 twist=-3,  # TODO fix
-                airfoil=generic_airfoil,
+                airfoil=naca0008,
             ),
         ]
     )
@@ -99,7 +101,7 @@ def make_airplane(wing_span):
                 z_le=0,  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 chord=vstab_chord,
                 twist=0,  # degrees
-                airfoil=generic_airfoil,  # Airfoils are blended between a given XSec and the next one.
+                airfoil=naca0008,  # Airfoils are blended between a given XSec and the next one.
                 control_surface_type='symmetric',
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
@@ -111,7 +113,7 @@ def make_airplane(wing_span):
                 z_le=vstab_span,
                 chord=vstab_chord,
                 twist=0,
-                airfoil=generic_airfoil,
+                airfoil=naca0008,
             ),
         ]
     )
