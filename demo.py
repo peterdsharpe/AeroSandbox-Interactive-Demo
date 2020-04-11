@@ -132,7 +132,7 @@ def display_geometry(
     )
     if button_pressed == 0:
         # Display the geometry
-        figure = airplane.draw(show=False)
+        figure = airplane.draw(show=False, colorbar_title=None)
         output = "Please run an analysis to display the data."
     elif button_pressed == 1:
         # Run an analysis
