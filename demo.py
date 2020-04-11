@@ -93,6 +93,7 @@ app.layout = dbc.Container(
         Input('run_vlm_analysis', 'n_clicks_timestamp'),
     ],
     [
+        State('n_booms','value'),
         State('wing_span', 'value'),
         State('alpha', 'value'),
     ]
@@ -101,6 +102,7 @@ def display_geometry(
         display_geometry,
         run_ll_analysis,
         run_vlm_analysis,
+        n_booms,
         wing_span,
         alpha,
 ):
@@ -117,7 +119,8 @@ def display_geometry(
 
     ### Make the airplane
     airplane = make_airplane(
-        wing_span=wing_span
+        n_booms=n_booms,
+        wing_span=wing_span,
     )
     op_point = asb.OperatingPoint(
         density=0.10,
@@ -153,7 +156,7 @@ def display_geometry(
             sol = opti.debug
             raise Exception("An error occurred!")
 
-        figure = ap.draw(show=False)  # Generates
+        figure = ap.draw(show=False)  # Generates figure
         output = []
         o = lambda x: output.extend([x, html.Br()])
         tab = "..." * 4
@@ -188,7 +191,7 @@ def display_geometry(
             sol = opti.debug
             raise Exception("An error occurred!")
 
-        figure = ap.draw(show=False)  # Generates
+        figure = ap.draw(show=False)  # Generates figure
         output = []
         o = lambda x: output.extend([x, html.Br()])
         tab = "..." * 4
