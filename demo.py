@@ -58,7 +58,18 @@ app.layout = dbc.Container(
                     color="primary"
                 )
             ], width=True)
-        ])
+        ]),
+        html.Hr(),
+        html.P([
+            html.A("Source code", href="https://github.com/peterdsharpe/AeroSandbox-Interactive-Demo"),
+            ". Aircraft design tools powered by ",
+            html.A("AeroSandbox", href="https://peterdsharpe.github.com/AeroSandbox"),
+            ". Build beautiful UIs for your scientific computing apps with ",
+            html.A("Plot.ly ", href="https://plotly.com/"),
+            "and ",
+            html.A("Dash", href="https://plotly.com/dash/"),
+            "!",
+        ]),
     ],
     fluid=True
 )
@@ -97,7 +108,7 @@ def display_geometry(
         display_geometry_n_clicks_last[0] = display_geometry_n_clicks
         # Display the geometry
         figure = airplane.draw(show=False)
-        output = ""
+        output = "Please run an analysis to display the data."
     elif not run_analysis_n_clicks == run_analysis_n_clicks_last[0]:
         run_analysis_n_clicks_last[0] = run_analysis_n_clicks
         # Run an analysis
@@ -151,4 +162,4 @@ try:  # wrapping this, since a forum post said it may be deprecated at some poin
     app.title = "Aircraft Design with Dash"
 except:
     print("Could not set the page title!")
-app.run_server(debug=False)
+app.run_server(debug=True)
