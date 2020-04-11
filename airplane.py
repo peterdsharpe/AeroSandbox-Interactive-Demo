@@ -4,7 +4,7 @@ import numpy as np
 import casadi as cas
 import copy
 
-def make_airplane_figure(wing_span):
+def make_airplane(wing_span):
     n_booms = 3
 
     # wing
@@ -45,6 +45,7 @@ def make_airplane_figure(wing_span):
                 control_surface_type='symmetric',
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
+                spanwise_panels=30
             ),
             asb.WingXSec(  # Tip
                 x_le=-wing_root_chord * 0.5 / 4,
@@ -73,6 +74,7 @@ def make_airplane_figure(wing_span):
                 control_surface_type='symmetric',
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
+                spanwise_panels=8
             ),
             asb.WingXSec(  # Tip
                 x_le=0,
@@ -101,6 +103,7 @@ def make_airplane_figure(wing_span):
                 control_surface_type='symmetric',
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
+                spanwise_panels=8
             ),
             asb.WingXSec(  # Tip
                 x_le=0,
@@ -239,4 +242,4 @@ def make_airplane_figure(wing_span):
         fuselages=fuses,
     )
 
-    return airplane.draw(show=False)
+    return airplane
