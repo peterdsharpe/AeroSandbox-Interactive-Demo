@@ -6,6 +6,7 @@ import copy
 
 naca0008 = asb.Airfoil("naca0008")
 
+
 def make_airplane(
         n_booms,
         wing_span,
@@ -41,7 +42,8 @@ def make_airplane(
         symmetric=True,
         xsecs=[  # The wing's cross ("X") sections
             asb.WingXSec(  # Root
-                x_le=-wing_root_chord / 4,  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
+                x_le=-wing_root_chord / 4,
+                # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 y_le=0,  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 z_le=0,  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 chord=wing_root_chord,
