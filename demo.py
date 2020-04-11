@@ -16,7 +16,7 @@ app.layout = dbc.Container(
     [
         dbc.Row([
             dbc.Col([
-                html.H1("Solar Aircraft Design with Dash"),
+                html.H1("Solar Aircraft Design with AeroSandbox and Dash"),
                 html.H5("Peter Sharpe"),
             ], width=True),
             dbc.Col([
