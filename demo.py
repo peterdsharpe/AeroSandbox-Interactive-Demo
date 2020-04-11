@@ -49,9 +49,12 @@ app.layout = dbc.Container(
                 html.Hr(),
                 html.Div([
                     html.H5("Commands"),
-                    dbc.Button("Display (1s)", id="display_geometry", color="primary", style={"margin": "5px"}, n_clicks_timestamp='0'),
-                    dbc.Button("Run LL Analysis (3s)", id="run_ll_analysis", color="secondary", style={"margin": "5px"}, n_clicks_timestamp='0'),
-                    dbc.Button("Run VLM Analysis (20s)", id="run_vlm_analysis", color="secondary", style={"margin": "5px"}, n_clicks_timestamp='0'),
+                    dbc.Button("Display (1s)", id="display_geometry", color="primary", style={"margin": "5px"},
+                               n_clicks_timestamp='0'),
+                    dbc.Button("Run LL Analysis (3s)", id="run_ll_analysis", color="secondary", style={"margin": "5px"},
+                               n_clicks_timestamp='0'),
+                    dbc.Button("Run VLM Analysis (20s)", id="run_vlm_analysis", color="secondary",
+                               style={"margin": "5px"}, n_clicks_timestamp='0'),
                 ]),
                 html.Hr(),
                 html.Div([
@@ -93,7 +96,7 @@ app.layout = dbc.Container(
         Input('run_vlm_analysis', 'n_clicks_timestamp'),
     ],
     [
-        State('n_booms','value'),
+        State('n_booms', 'value'),
         State('wing_span', 'value'),
         State('alpha', 'value'),
     ]
