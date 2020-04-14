@@ -22,9 +22,9 @@ app.layout = dbc.Container(
                 html.H2("Solar Aircraft Design with AeroSandbox and Dash"),
                 html.H5("Peter Sharpe"),
             ], width=True),
-            dbc.Col([
-                html.Img(src="assets/MIT-logo-red-gray-72x38.svg", alt="MIT Logo", height="30px"),
-            ], width=1)
+            # dbc.Col([
+            #     html.Img(src="assets/MIT-logo-red-gray-72x38.svg", alt="MIT Logo", height="30px"),
+            # ], width=1)
         ], align="end"),
         html.Hr(),
         dbc.Row([
