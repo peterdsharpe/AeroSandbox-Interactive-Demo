@@ -258,4 +258,4 @@ try:  # wrapping this, since a forum post said it may be deprecated at some poin
     app.title = "Aircraft Design with Dash"
 except:
     print("Could not set the page title!")
-app.run_server(debug=True)
+app.run_server(debug=False)
