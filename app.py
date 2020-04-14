@@ -8,9 +8,12 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import aerosandbox as asb
 import casadi as cas
-from airplane import *
+from airplane import make_airplane
+import numpy as np
+import pandas as pd
 
 app = dash.Dash(external_stylesheets=[dbc.themes.MINTY])
+server = app.server
 
 app.layout = dbc.Container(
     [
@@ -59,7 +62,10 @@ app.layout = dbc.Container(
                 html.Hr(),
                 html.Div([
                     html.H5("Aerodynamic Performance"),
-                    html.P(id='output')
+                    dbc.Spinner(
+                        html.P(id='output'),
+                        color="primary",
+                    )
                 ])
             ], width=3),
             dbc.Col([
@@ -84,6 +90,19 @@ app.layout = dbc.Container(
     ],
     fluid=True
 )
+
+
+def make_table(dataframe):
+    return dbc.Table.from_dataframe(
+        dataframe,
+        bordered=True,
+        hover=True,
+        responsive=True,
+        striped=True,
+        style={
+
+        }
+    )
 
 
 @app.callback(
@@ -137,7 +156,6 @@ def display_geometry(
     elif button_pressed == 1:
         # Run an analysis
         opti = cas.Opti()  # Initialize an analysis/optimization environment
-        # airplane.fuselages=[]
         ap = asb.Casll1(
             airplane=airplane,
             op_point=op_point,
@@ -160,19 +178,29 @@ def display_geometry(
             raise Exception("An error occurred!")
 
         figure = ap.draw(show=False)  # Generates figure
-        output = []
-        o = lambda x: output.extend([x, html.Br()])
-        tab = "..." * 4
-        o("CL: %.4f" % sol.value(ap.CL))
-        o("CD: %.4f" % sol.value(ap.CD))
-        o(tab + "CDi: %.4f" % sol.value(ap.CDi))
-        o(tab + "CDp: %.4f" % sol.value(ap.CDp))
-        o("L/D: %.3f" % sol.value((ap.CL / ap.CD)))
-        output = html.P(output)
+
+        output = make_table(pd.DataFrame(
+            {
+                "Figure": [
+                    "CL",
+                    "CD",
+                    "CDi",
+                    "CDp",
+                    "L/D"
+                ],
+                "Value" : [
+                    sol.value(ap.CL),
+                    sol.value(ap.CD),
+                    sol.value(ap.CDi),
+                    sol.value(ap.CDp),
+                    sol.value(ap.CL / ap.CD),
+                ]
+            }
+        ))
+
     elif button_pressed == 2:
         # Run an analysis
         opti = cas.Opti()  # Initialize an analysis/optimization environment
-        # airplane.fuselages=[]
         ap = asb.Casvlm1(
             airplane=airplane,
             op_point=op_point,
@@ -195,15 +223,21 @@ def display_geometry(
             raise Exception("An error occurred!")
 
         figure = ap.draw(show=False)  # Generates figure
-        output = []
-        o = lambda x: output.extend([x, html.Br()])
-        tab = "..." * 4
-        o("CL: %.4f" % sol.value(ap.CL))
-        o("CDi: %.4f" % sol.value(ap.CDi))
-        # o(tab + "CDi: %.4f" % ap.CDi)
-        # o(tab + "CDp: %.4f" % ap.CDp)
-        o("L/Di: %.3f" % sol.value((ap.CL / ap.CDi)))
-        output = html.P(output)
+
+        output = make_table(pd.DataFrame(
+            {
+                "Figure": [
+                    "CL",
+                    "CDi",
+                    "L/Di"
+                ],
+                "Value" : [
+                    sol.value(ap.CL),
+                    sol.value(ap.CDi),
+                    sol.value(ap.CL / ap.CDi),
+                ]
+            }
+        ))
 
     figure.update_layout(
         autosize=True,
@@ -224,4 +258,4 @@ try:  # wrapping this, since a forum post said it may be deprecated at some poin
     app.title = "Aircraft Design with Dash"
 except:
     print("Could not set the page title!")
-app.run_server(debug=False)
+app.run_server(debug=True)

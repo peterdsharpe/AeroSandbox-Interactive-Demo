@@ -2,11 +2,13 @@ import aerosandbox as asb
 import casadi as cas
 from airplane import make_airplane
 
+n_booms=1
 wing_span = 40
 alpha = 5
 
 airplane = make_airplane(
-    wing_span=wing_span
+    n_booms=n_booms,
+    wing_span=wing_span,
 )
 op_point = asb.OperatingPoint(
     density=0.10,
@@ -18,7 +20,7 @@ op_point = asb.OperatingPoint(
 # Run an analysis
 opti = cas.Opti()  # Initialize an analysis/optimization environment
 # airplane.fuselages=[]
-ap = asb.Casll1(
+ap = asb.Casvlm1(
     airplane=airplane,
     op_point=op_point,
     opti=opti
@@ -36,4 +38,4 @@ except RuntimeError:
     raise Exception("An error occurred!")
 # Postprocess
 # ap.substitute_solution(sol)
-ap.draw()
+ap.draw(show=False).show()
