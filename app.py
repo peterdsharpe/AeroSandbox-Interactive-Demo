@@ -173,30 +173,33 @@ def display_geometry(
         # Solve
         try:
             sol = opti.solve()
-        except RuntimeError:
+            output = make_table(pd.DataFrame(
+                {
+                    "Figure": [
+                        "CL",
+                        "CD",
+                        "CDi",
+                        "CDp",
+                        "L/D"
+                    ],
+                    "Value" : [
+                        sol.value(ap.CL),
+                        sol.value(ap.CD),
+                        sol.value(ap.CDi),
+                        sol.value(ap.CDp),
+                        sol.value(ap.CL / ap.CD),
+                    ]
+                }
+            ))
+        except:
             sol = opti.debug
-            raise Exception("An error occurred!")
+            output = html.P(
+                "Aerodynamic analysis failed! Most likely the airplane is stalled at this flight condition."
+            )
 
         figure = ap.draw(show=False)  # Generates figure
 
-        output = make_table(pd.DataFrame(
-            {
-                "Figure": [
-                    "CL",
-                    "CD",
-                    "CDi",
-                    "CDp",
-                    "L/D"
-                ],
-                "Value" : [
-                    sol.value(ap.CL),
-                    sol.value(ap.CD),
-                    sol.value(ap.CDi),
-                    sol.value(ap.CDp),
-                    sol.value(ap.CL / ap.CD),
-                ]
-            }
-        ))
+
 
     elif button_pressed == 2:
         # Run an analysis
@@ -218,26 +221,27 @@ def display_geometry(
         # Solve
         try:
             sol = opti.solve()
-        except RuntimeError:
+            output = make_table(pd.DataFrame(
+                {
+                    "Figure": [
+                        "CL",
+                        "CDi",
+                        "L/Di"
+                    ],
+                    "Value" : [
+                        sol.value(ap.CL),
+                        sol.value(ap.CDi),
+                        sol.value(ap.CL / ap.CDi),
+                    ]
+                }
+            ))
+        except:
             sol = opti.debug
-            raise Exception("An error occurred!")
+            output = html.P(
+                "Aerodynamic analysis failed! Most likely the airplane is stalled at this flight condition."
+            )
 
         figure = ap.draw(show=False)  # Generates figure
-
-        output = make_table(pd.DataFrame(
-            {
-                "Figure": [
-                    "CL",
-                    "CDi",
-                    "L/Di"
-                ],
-                "Value" : [
-                    sol.value(ap.CL),
-                    sol.value(ap.CDi),
-                    sol.value(ap.CL / ap.CDi),
-                ]
-            }
-        ))
 
     figure.update_layout(
         autosize=True,

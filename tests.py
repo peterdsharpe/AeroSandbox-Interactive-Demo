@@ -2,7 +2,7 @@ import aerosandbox as asb
 import casadi as cas
 from airplane import make_airplane
 
-n_booms=1
+n_booms=3
 wing_span = 40
 alpha = 5
 
@@ -20,7 +20,7 @@ op_point = asb.OperatingPoint(
 # Run an analysis
 opti = cas.Opti()  # Initialize an analysis/optimization environment
 # airplane.fuselages=[]
-ap = asb.Casvlm1(
+ap = asb.Casll1(
     airplane=airplane,
     op_point=op_point,
     opti=opti
