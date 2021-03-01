@@ -216,6 +216,7 @@ def display_geometry(
         # Solver options
         p_opts = {}
         s_opts = {}
+        s_opts["max_iter"] = 50
         # s_opts["mu_strategy"] = "adaptive"
         opti.solver('ipopt', p_opts, s_opts)
         # Solve
