@@ -2,18 +2,17 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.subplots as sub
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import aerosandbox as asb
-import casadi as cas
-from airplane import make_airplane
 import numpy as np
 import pandas as pd
 
+from airplane import make_airplane
+
 app = dash.Dash(external_stylesheets=[dbc.themes.MINTY])
-server = app.server
 
 app.layout = dbc.Container(
     [
@@ -37,7 +36,7 @@ app.layout = dbc.Container(
                         min=1,
                         max=3,
                         step=1,
-                        value=3,
+                        value=1,
                         marks={
                             1: "1",
                             2: "2",
@@ -144,100 +143,92 @@ def display_geometry(
         n_booms=n_booms,
         wing_span=wing_span,
     )
-    op_point = asb.OperatingPoint(
-        density=0.10,
-        velocity=20,
-        alpha=alpha,
-    )
     if button_pressed == 0:
         # Display the geometry
-        figure = airplane.draw(show=False, colorbar_title=None)
+        figure = airplane.draw(show=False, backend='plotly')
         output = "Please run an analysis to display the data."
     elif button_pressed == 1:
         # Run an analysis
-        opti = cas.Opti()  # Initialize an analysis/optimization environment
-        ap = asb.Casll1(
-            airplane=airplane,
-            op_point=op_point,
-            opti=opti,
-            run_setup=False
-        )
-        ap.setup(
-            verbose=False
+        opti = asb.Opti()  # Initialize an analysis/optimization environment
+
+        ap, result = analyse_ll(
+            my_airplane=airplane,
+            ms_velocity=20,
+            angle_of_attack=alpha,
+            angle_of_sideslip=0,
         )
         # Solver options
         p_opts = {}
         s_opts = {}
+        s_opts["max_iter"] = 50
         # s_opts["mu_strategy"] = "adaptive"
         opti.solver('ipopt', p_opts, s_opts)
         # Solve
         try:
             sol = opti.solve()
-        except RuntimeError:
+            output = make_table(pd.DataFrame(
+                {
+                    "Figure": [
+                        "CL",
+                        "CD",
+                        "L/D"
+                    ],
+                    "Value" : [
+                        sol.value(result["CL"]),
+                        sol.value(result["CD"]),
+                        sol.value(result["CL"] / result["CD"]),
+                    ]
+                }
+            ))
+        except RuntimeError as e:
             sol = opti.debug
-            raise Exception("An error occurred!")
+            output = html.P(
+                "Aerodynamic analysis failed! Most likely the airplane is stalled at this flight condition."
+            )
+            print(e)
 
-        figure = ap.draw(show=False)  # Generates figure
-
-        output = make_table(pd.DataFrame(
-            {
-                "Figure": [
-                    "CL",
-                    "CD",
-                    "CDi",
-                    "CDp",
-                    "L/D"
-                ],
-                "Value" : [
-                    sol.value(ap.CL),
-                    sol.value(ap.CD),
-                    sol.value(ap.CDi),
-                    sol.value(ap.CDp),
-                    sol.value(ap.CL / ap.CD),
-                ]
-            }
-        ))
+        figure = ap.draw(show=False, backend='plotly')
 
     elif button_pressed == 2:
         # Run an analysis
-        opti = cas.Opti()  # Initialize an analysis/optimization environment
-        ap = asb.Casvlm1(
-            airplane=airplane,
-            op_point=op_point,
-            opti=opti,
-            run_setup=False
-        )
-        ap.setup(
-            verbose=False
+        opti = asb.Opti()  # Initialize an analysis/optimization environment
+        ap, result = analyse_vlm(
+            my_airplane=airplane,
+            ms_velocity=20,
+            angle_of_attack=alpha,
+            angle_of_sideslip=0,
         )
         # Solver options
         p_opts = {}
         s_opts = {}
+        s_opts["max_iter"] = 50
         # s_opts["mu_strategy"] = "adaptive"
         opti.solver('ipopt', p_opts, s_opts)
         # Solve
         try:
             sol = opti.solve()
-        except RuntimeError:
+            output = make_table(pd.DataFrame(
+                {
+                    "Figure": [
+                        "CL",
+                        "CD",
+                        "L/D"
+                    ],
+                    "Value" : [
+                        sol.value(result["CL"]),
+                        sol.value(result["CD"]),
+                        sol.value(result["CL"] / result["CD"]),
+                    ]
+                }
+            ))
+        except RuntimeError as e:
             sol = opti.debug
-            raise Exception("An error occurred!")
+            output = html.P(
+                "Aerodynamic analysis failed! Most likely the airplane is stalled at this flight condition."
+            )
+            print(e)
 
-        figure = ap.draw(show=False)  # Generates figure
-
-        output = make_table(pd.DataFrame(
-            {
-                "Figure": [
-                    "CL",
-                    "CDi",
-                    "L/Di"
-                ],
-                "Value" : [
-                    sol.value(ap.CL),
-                    sol.value(ap.CDi),
-                    sol.value(ap.CL / ap.CDi),
-                ]
-            }
-        ))
+        figure = ap.draw(show=False, backend='plotly')  # Generates figure
 
     figure.update_layout(
         autosize=True,
@@ -253,9 +244,71 @@ def display_geometry(
 
     return (figure, output)
 
+# Analysis type: Vortex Lattice Method
+def analyse_vlm(
+        my_airplane,
+        ms_velocity,
+        angle_of_attack,
+        angle_of_sideslip,
+):
 
-try:  # wrapping this, since a forum post said it may be deprecated at some point.
-    app.title = "Aircraft Design with Dash"
-except:
-    print("Could not set the page title!")
-app.run_server(debug=False)
+    op_point=asb.OperatingPoint(
+        atmosphere=asb.Atmosphere(altitude=0),
+        velocity=ms_velocity,  # airspeed, m/s
+        alpha=angle_of_attack,  # angle of attack, deg
+        beta=angle_of_sideslip,  # sideslip angle, deg
+        p=0,  # x-axis rotation rate, rad/sec
+        q=0,  # y-axis rotation rate, rad/sec
+        r=0,  # z-axis rotation rate, rad/sec
+    )
+
+    xyz_ref = [
+        my_airplane.wings[0].aerodynamic_center(chord_fraction=0.35)[0],
+        0,
+        0
+    ]
+
+    analysis = asb.VortexLatticeMethod(
+        airplane=my_airplane,
+        op_point=op_point,
+        xyz_ref=xyz_ref,
+    )
+    result = analysis.run()
+
+    return (analysis, result)
+
+# Analysis type: LiftingLine
+def analyse_ll(
+        my_airplane,
+        ms_velocity,
+        angle_of_attack,
+        angle_of_sideslip,
+):
+
+    op_point = asb.OperatingPoint(
+            atmosphere=asb.Atmosphere(altitude=0),
+            velocity=ms_velocity,  # airspeed, m/s
+            alpha=angle_of_attack,  # angle of attack, deg
+            beta=angle_of_sideslip,  # sideslip angle, deg
+            p=0,  # x-axis rotation rate, rad/sec
+            q=0,  # y-axis rotation rate, rad/sec
+            r=0,  # z-axis rotation rate, rad/sec
+        )
+
+    xyz_ref = [
+        my_airplane.wings[0].aerodynamic_center(chord_fraction=0.35)[0],
+        0,
+        0
+    ]
+
+    analysis = asb.LiftingLine(
+        airplane=my_airplane,
+        op_point=op_point,
+        xyz_ref=xyz_ref,
+    )
+    result = analysis.run()
+
+    return (analysis, result)
+
+if __name__ == '__main__':
+    app.run(debug=False)

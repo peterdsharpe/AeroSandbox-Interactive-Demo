@@ -1,8 +1,11 @@
-aerosandbox==1.1.20
-plotly>= 4.6.0
-dash>= 1.9
+aerosandbox==4.2.6
+plotly>=5.24.1
+dash>=1.9
 dash_core_components>=1.8.0
 dash_html_components>=1.0.2
-dash_bootstrap_components>=0.8.0
-numpy>= 1.18
-casadi>= 3.5
+dash_bootstrap_components>=1.6.0
+numpy>=1.26
+casadi>=3.6.7
+gunicorn>=23.0
+pandas>=2.2.3
+seaborn
