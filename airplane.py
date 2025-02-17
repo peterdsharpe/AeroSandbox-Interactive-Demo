@@ -1,6 +1,5 @@
 import aerosandbox as asb
 import numpy as np
-import casadi as cas
 import copy
 
 naca0008 = asb.Airfoil(name="naca0008")

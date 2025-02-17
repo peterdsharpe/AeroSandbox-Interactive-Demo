@@ -1,6 +1,3 @@
-import plotly.express as px
-import plotly.graph_objects as go
-import plotly.subplots as sub
 import dash
 from dash import dcc
 from dash import html
