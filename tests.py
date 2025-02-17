@@ -1,8 +1,9 @@
 import aerosandbox as asb
 from airplane import make_airplane
 
+
 def test_lifting_line():
-    n_booms=3
+    n_booms = 3
     wing_span = 40
     alpha = 5
 
@@ -29,7 +30,7 @@ def test_lifting_line():
     p_opts = {}
     s_opts = {}
     # s_opts["mu_strategy"] = "adaptive"
-    opti.solver('ipopt', p_opts, s_opts)
+    opti.solver("ipopt", p_opts, s_opts)
     # Solve
     try:
         sol = opti.solve()
@@ -38,7 +39,8 @@ def test_lifting_line():
         raise Exception("An error occurred!")
     # Postprocess
     # ap.substitute_solution(sol)
-    ap.draw(show=False, backend='plotly').show()
+    ap.draw(show=False, backend="plotly").show()
+
 
 if __name__ == "__main__":
     test_lifting_line()

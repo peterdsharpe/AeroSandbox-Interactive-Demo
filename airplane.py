@@ -5,10 +5,11 @@ import copy
 naca0008 = asb.Airfoil(name="naca0008")
 e216 = asb.Airfoil(name="e216")
 
+
 def make_airplane(
-        n_booms=1,
-        wing_span=43,
-)-> asb.Airplane:
+    n_booms=1,
+    wing_span=43,
+) -> asb.Airplane:
 
     # boom length
     boom_length = 6.181
@@ -30,7 +31,7 @@ def make_airplane(
     wing = asb.Wing(
         name="Main Wing",
         # x_le=-0.05 * wing_root_chord,  # Coordinates of the wing's leading edge # TODO make this a free parameter?
-        #x_le=wing_x_quarter_chord,  # Coordinates of the wing's leading edge # TODO make this a free parameter?
+        # x_le=wing_x_quarter_chord,  # Coordinates of the wing's leading edge # TODO make this a free parameter?
         symmetric=True,
         xsecs=[  # The wing's cross ("X") sections
             asb.WingXSec(  # Root
@@ -39,19 +40,19 @@ def make_airplane(
                 chord=wing_root_chord,
                 twist=0,  # degrees
                 airfoil=e216,  # Airfoils are blended between a given XSec and the next one.
-                control_surface_type='symmetric',
+                control_surface_type="symmetric",
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
-                spanwise_panels=30
+                spanwise_panels=30,
             ),
             asb.WingXSec(  # Tip
-                #z_le=0,  # wing_span / 2 * cas.pi / 180 * 5,
+                # z_le=0,  # wing_span / 2 * cas.pi / 180 * 5,
                 xyz_le=[-wing_root_chord * 0.5 / 4, wing_span / 2, 0],
                 chord=wing_root_chord * 0.5,
                 twist=0,
                 airfoil=e216,
             ),
-        ]
+        ],
     ).translate([-0.05 * wing_root_chord, 0, 0])
 
     hstab = asb.Wing(
@@ -64,10 +65,10 @@ def make_airplane(
                 chord=hstab_chord,
                 twist=hstab_twist_angle,  # degrees # TODO fix
                 airfoil=naca0008,  # Airfoils are blended between a given XSec and the next one.
-                control_surface_type='symmetric',
+                control_surface_type="symmetric",
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
-                spanwise_panels=8
+                spanwise_panels=8,
             ),
             asb.WingXSec(  # Tip
                 xyz_le=[0, hstab_span / 2, 0],
@@ -75,23 +76,25 @@ def make_airplane(
                 twist=hstab_twist_angle,  # TODO fix
                 airfoil=naca0008,
             ),
-        ]
-    ).translate([boom_length - vstab_chord * 0.75 - hstab_chord, 0, 0]) # Coordinates of the wing's leading edge
+        ],
+    ).translate(
+        [boom_length - vstab_chord * 0.75 - hstab_chord, 0, 0]
+    )  # Coordinates of the wing's leading edge
 
     vstab = asb.Wing(
         name="Vertical Stabilizer",
         symmetric=False,
         xsecs=[  # The wing's cross ("X") sections
             asb.WingXSec(  # Root
-                #xyz_le Coordinates of the XSec's leading edge, relative to the wing's leading edge.
+                # xyz_le Coordinates of the XSec's leading edge, relative to the wing's leading edge.
                 xyz_le=[0, 0, 0],
                 chord=vstab_chord,
                 twist=0,  # degrees
                 airfoil=naca0008,  # Airfoils are blended between a given XSec and the next one.
-                control_surface_type='symmetric',
+                control_surface_type="symmetric",
                 # Flap # Control surfaces are applied between a given XSec and the next one.
                 control_surface_deflection=0,  # degrees
-                spanwise_panels=8
+                spanwise_panels=8,
             ),
             asb.WingXSec(  # Tip
                 xyz_le=[0, 0, vstab_span],
@@ -99,8 +102,10 @@ def make_airplane(
                 twist=0,
                 airfoil=naca0008,
             ),
-        ]
-    ).translate([boom_length - vstab_chord * 0.75, 0, -vstab_span / 2 + vstab_span * 0.15]) # Coordinates of the wing's leading edge
+        ],
+    ).translate(
+        [boom_length - vstab_chord * 0.75, 0, -vstab_span / 2 + vstab_span * 0.15]
+    )  # Coordinates of the wing's leading edge
 
     ### Build the fuselage geometry
     # boom_length = 6.181
@@ -110,12 +115,12 @@ def make_airplane(
     #
     # wing_x_quarter_chord
     fuse = build_fuse(
-        boom_length = boom_length,
-        nose_length = 1.5,
-        fuse_diameter = 0.6,
-        boom_diameter = 0.2,
-        wing_x_quarter_chord = wing_x_quarter_chord,
-        wing_root_chord = wing_root_chord,
+        boom_length=boom_length,
+        nose_length=1.5,
+        fuse_diameter=0.6,
+        boom_diameter=0.2,
+        wing_x_quarter_chord=wing_x_quarter_chord,
+        wing_root_chord=wing_root_chord,
     )
 
     # Assemble the airplane
@@ -206,24 +211,34 @@ def build_fuse(
     fuse_resolution = 10
     # Nose geometry
     fuse_nose_theta = np.linspace(0, np.pi / 2, fuse_resolution)
-    fuse_x_c.extend([
-        (wing_x_quarter_chord - wing_root_chord / 4) - nose_length * np.cos(theta) for theta in fuse_nose_theta
-    ])
+    fuse_x_c.extend(
+        [
+            (wing_x_quarter_chord - wing_root_chord / 4) - nose_length * np.cos(theta)
+            for theta in fuse_nose_theta
+        ]
+    )
     fuse_z_c.extend([-fuse_diameter / 2] * fuse_resolution)
-    fuse_radius.extend([
-        fuse_diameter / 2 * np.sin(theta) for theta in fuse_nose_theta
-    ])
+    fuse_radius.extend([fuse_diameter / 2 * np.sin(theta) for theta in fuse_nose_theta])
     # Taper
     fuse_taper_x_nondim = np.linspace(0, 1, fuse_resolution)
-    fuse_x_c.extend([
-        0.0 * boom_length + (0.6 - 0.0) * boom_length * x_nd for x_nd in fuse_taper_x_nondim
-    ])
-    fuse_z_c.extend([
-        -fuse_diameter / 2 * blend(1 - x_nd) - boom_diameter / 2 * blend(x_nd) for x_nd in fuse_taper_x_nondim
-    ])
-    fuse_radius.extend([
-        fuse_diameter / 2 * blend(1 - x_nd) + boom_diameter / 2 * blend(x_nd) for x_nd in fuse_taper_x_nondim
-    ])
+    fuse_x_c.extend(
+        [
+            0.0 * boom_length + (0.6 - 0.0) * boom_length * x_nd
+            for x_nd in fuse_taper_x_nondim
+        ]
+    )
+    fuse_z_c.extend(
+        [
+            -fuse_diameter / 2 * blend(1 - x_nd) - boom_diameter / 2 * blend(x_nd)
+            for x_nd in fuse_taper_x_nondim
+        ]
+    )
+    fuse_radius.extend(
+        [
+            fuse_diameter / 2 * blend(1 - x_nd) + boom_diameter / 2 * blend(x_nd)
+            for x_nd in fuse_taper_x_nondim
+        ]
+    )
     # Tail
     # fuse_tail_x_nondim = np.linspace(0, 1, fuse_resolution)[1:]
     # fuse_x_c.extend([
@@ -236,24 +251,21 @@ def build_fuse(
     #     boom_diameter / 2 * blend(1 - x_nd) for x_nd in fuse_taper_x_nondim
     # ])
     fuse_straight_resolution = 4
-    fuse_x_c.extend([
-        0.6 * boom_length + (1 - 0.6) * boom_length * x_nd for x_nd in np.linspace(0, 1, fuse_straight_resolution)[1:]
-    ])
-    fuse_z_c.extend(
-        [-boom_diameter / 2] * (fuse_straight_resolution - 1)
+    fuse_x_c.extend(
+        [
+            0.6 * boom_length + (1 - 0.6) * boom_length * x_nd
+            for x_nd in np.linspace(0, 1, fuse_straight_resolution)[1:]
+        ]
     )
-    fuse_radius.extend(
-        [boom_diameter / 2] * (fuse_straight_resolution - 1)
-    )
+    fuse_z_c.extend([-boom_diameter / 2] * (fuse_straight_resolution - 1))
+    fuse_radius.extend([boom_diameter / 2] * (fuse_straight_resolution - 1))
 
     fuse = asb.Fuselage(
         name="Fuselage",
         xsecs=[
-            asb.FuselageXSec(
-                xyz_c=[fuse_x_c[i], 0, fuse_z_c[i]],
-                radius=fuse_radius[i]
-            ) for i in range(len(fuse_x_c))
-        ]
+            asb.FuselageXSec(xyz_c=[fuse_x_c[i], 0, fuse_z_c[i]], radius=fuse_radius[i])
+            for i in range(len(fuse_x_c))
+        ],
     )
 
     return fuse
