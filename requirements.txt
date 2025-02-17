@@ -1,4 +1,4 @@
-aerosandbox==4.2.6
+aerosandbox==4.2.8
 plotly>=5.24.1
 dash>=1.9
 dash_core_components>=1.8.0
